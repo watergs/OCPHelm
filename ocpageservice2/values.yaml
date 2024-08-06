@@ -6,7 +6,7 @@ replicaCount: 1
 
 image:
   repository: karan17thakkar9/ocpageservice2
-  pullPolicy: Always
+  pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: lt
 

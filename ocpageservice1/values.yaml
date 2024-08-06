@@ -6,7 +6,7 @@ replicaCount: 1
 
 image:
   repository: karan17thakkar9/ocpageservice1
-  pullPolicy: Always
+  pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: lt
 
@@ -44,7 +44,7 @@ service:
   port: 8080
 
 ingress:
-  enabled: true
+  enabled: false
   className: ""
   annotations: {}
     # kubernetes.io/ingress.class: nginx
@@ -58,6 +58,9 @@ ingress:
   #  - secretName: chart-example-tls
   #    hosts:
   #      - chart-example.local
+
+route:
+  host: ocpageservice1-oc-testenv
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
