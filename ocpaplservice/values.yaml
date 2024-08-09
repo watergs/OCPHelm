@@ -4,6 +4,9 @@
 
 replicaCount: 1
 
+deployment:
+    namespace: oc-testenv
+    
 image:
   repository: karan17thakkar9/ocpaplservice
   pullPolicy: IfNotPresent

@@ -4,6 +4,9 @@
 
 replicaCount: 1
 
+deployment:
+    namespace: oc-testenv
+
 image:
   repository: karan17thakkar9/ocpageservice2
   pullPolicy: IfNotPresent
@@ -50,9 +53,9 @@ ingress:
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
   hosts:
-    - host: ocpageservice-oc-testenv
+    - host: ocpageservice-oc-testenv.apps-crc.testing
       paths:
-        - path: /
+        - path: /age/balances
           pathType: ImplementationSpecific
   tls: []
   #  - secretName: chart-example-tls

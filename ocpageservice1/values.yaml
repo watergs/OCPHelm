@@ -4,6 +4,9 @@
 
 replicaCount: 1
 
+deployment:
+    namespace: oc-testenv
+    
 image:
   repository: karan17thakkar9/ocpageservice1
   pullPolicy: IfNotPresent
@@ -44,15 +47,15 @@ service:
   port: 8080
 
 ingress:
-  enabled: false
+  enabled: true
   className: ""
   annotations: {}
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
   hosts:
-    - host: ocpageservice-oc-testenv
+    - host: ocpageservice-oc-testenv.apps-crc.testing
       paths:
-        - path: /
+        - path: /age/users
           pathType: ImplementationSpecific
   tls: []
   #  - secretName: chart-example-tls
@@ -60,7 +63,7 @@ ingress:
   #      - chart-example.local
 
 route:
-  host: ocpageservice1-oc-testenv
+  host: ocpageservice1-oc-testenv.apps-crc.testing
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious

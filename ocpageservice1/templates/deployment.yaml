@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "ocpageservice1.fullname" . }}
+  namespace: {{ .Values.deployment.namespace }}
   labels:
     {{- include "ocpageservice1.labels" . | nindent 4 }}
 spec:
