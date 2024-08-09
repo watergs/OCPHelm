@@ -1,0 +1,19 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ include "ocpaplservice.fullname" . }}.apps-crc.testing
+  labels:
+    app.kubernetes.io/instance: ocpaplservice
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: ocpaplservice
+    app.kubernetes.io/version: 1.16.0
+spec:
+  host: {{ .Values.route.host }}
+  path: 
+  to:
+    kind: Service
+    name: {{ include "ocpaplservice.fullname" . }}
+    weight: 100
+  port:
+    targetPort: {{ .Values.route.port }}
+  wildcardPolicy: None

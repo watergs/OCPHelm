@@ -1,4 +1,4 @@
-# Default values for ocpaplservice.
+# Default values for ocpageservice1.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
@@ -8,7 +8,7 @@ deployment:
     namespace: oc-testenv
     
 image:
-  repository: karan17thakkar9/ocpaplservice
+  repository: karan17thakkar9/ocpageservice1
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: lt
@@ -47,15 +47,15 @@ service:
   port: 8080
 
 ingress:
-  enabled: false
+  enabled: true
   className: ""
   annotations: {}
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
   hosts:
-    - host: ocpaplservice-oc-testenv.apps-crc.testing
+    - host: ocpageservice-oc-uc3.apps-crc.testing
       paths:
-        - path: /
+        - path: /age/users
           pathType: ImplementationSpecific
   tls: []
   #  - secretName: chart-example-tls
@@ -63,8 +63,7 @@ ingress:
   #      - chart-example.local
 
 route:
-  host: ocpaplservice-oc-testenv.apps-crc.testing
-  port: http
+  host: ocpageservice-oc-uc3.apps-crc.testing
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
@@ -94,7 +93,7 @@ readinessProbe:
 autoscaling:
   enabled: false
   minReplicas: 1
-  maxReplicas: 2
+  maxReplicas: 100
   targetCPUUtilizationPercentage: 80
   # targetMemoryUtilizationPercentage: 80
 
@@ -116,3 +115,8 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+hostAliases:
+  - ip: "192.168.50.157"
+    hostnames:
+    - "http://ocpaplservice-oc-test.com"
