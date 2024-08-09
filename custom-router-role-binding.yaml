@@ -1,0 +1,24 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: custom-router-update-route-status
+subjects:
+- kind: ServiceAccount
+  name: custom-router
+  namespace: openshift-ingress
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: custom-router-endpointslices-reader  # Replace with the actual name
+namespace:
+- openshift-authentication  # Add namespaces where update is needed
+- openshift-image-registry
+verbs:
+- get
+- update
+resourceNames:
+- '*'  # Update all routes within these namespaces (consider using specific route names for better security)
+resources:
+- routes/status  # Grant permission for the status subresource
+apiGroups:
+- route.openshift.io

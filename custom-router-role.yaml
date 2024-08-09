@@ -1,0 +1,14 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: custom-router-endpointslices-reader
+rules:
+- apiGroups: ["discovery.k8s.io"]  # Existing rule for EndpointSlices
+  resources: ["endpointslices"]
+  verbs: ["list"]
+- apiGroups: [""]  # Empty string indicates core API group (for Services)
+  resources: ["services"]
+  verbs: ["list", "watch"]  # Added watch verb for services
+- apiGroups: ["route.openshift.io"]  # API group for OpenShift Routes
+  resources: ["routes"]
+  verbs: ["list", "watch"]  # Added watch verb for routes

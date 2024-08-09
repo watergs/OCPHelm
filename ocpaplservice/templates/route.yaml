@@ -1,7 +1,10 @@
+{{- if .Values.route.enabled -}}
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
-  name: {{ include "ocpaplservice.fullname" . }}.apps-crc.testing
+  name: {{ include "ocpaplservice.fullname" . }}-route
+  annotations:
+    haproxy.router.openshift.io/selector: "router=custom"
   labels:
     app.kubernetes.io/instance: ocpaplservice
     app.kubernetes.io/managed-by: Helm
@@ -17,3 +20,4 @@ spec:
   port:
     targetPort: {{ .Values.route.port }}
   wildcardPolicy: None
+{{- end }}

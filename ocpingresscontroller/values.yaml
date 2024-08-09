@@ -1,14 +1,14 @@
-# Default values for ocpaplservice.
+# Default values for ocpingresscontroller.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
 replicaCount: 1
 
 image:
-  repository: karan17thakkar9/ocpaplservice
+  repository: quay.io/openshift/origin-haproxy-router:latest
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: lt
+  tag: ""
 
 imagePullSecrets: []
 nameOverride: ""
@@ -41,16 +41,16 @@ securityContext: {}
 
 service:
   type: ClusterIP
-  port: 8080
+  port: 80
 
 ingress:
-  enabled: true
+  enabled: false
   className: ""
-  annotations: 
-    nginx.ingress.kubernetes.io/rewrite-target: /
-    haproxy.router.openshift.io/selector: "router=custom"
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
   hosts:
-    - host: ocpaplservice-oc-testenv.apps-crc.testing
+    - host: chart-example.local
       paths:
         - path: /
           pathType: ImplementationSpecific
@@ -58,11 +58,6 @@ ingress:
   #  - secretName: chart-example-tls
   #    hosts:
   #      - chart-example.local
-
-route:
-  enabled: false
-  host: ocpaplservice-oc-testenv.apps-crc.testing
-  port: http
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
@@ -78,21 +73,17 @@ resources: {}
 
 livenessProbe:
   httpGet:
-    path: /actuator/health
-    port: 8080
-  initialDelaySeconds: 60
-  periodSeconds: 30
+    path: /
+    port: http
 readinessProbe:
   httpGet:
-    path: /actuator/health
-    port: 8080
-  initialDelaySeconds: 30
-  periodSeconds: 10
+    path: /
+    port: http
 
 autoscaling:
   enabled: false
   minReplicas: 1
-  maxReplicas: 2
+  maxReplicas: 100
   targetCPUUtilizationPercentage: 80
   # targetMemoryUtilizationPercentage: 80
 

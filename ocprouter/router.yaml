@@ -1,0 +1,17 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: router
+  namespace: openshift-ingress
+spec:
+  type: NodePort
+  ports:
+    - port: 80
+      targetPort: 80
+      nodePort: 30080
+    - port: 443
+      targetPort: https
+      portocol: TCP
+      nodePort: 30443
+  selector:
+    app: router
