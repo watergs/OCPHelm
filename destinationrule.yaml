@@ -1,0 +1,10 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: ocsaplservice-testenv-destinationrule
+  namespace: oc-testenv
+spec:
+  host: ocsaplservice-testenv.oc-testenv.svc.cluster.local
+  trafficPolicy:
+    loadBalancer:
+      simple: ROUND_ROBIN

@@ -1,0 +1,67 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: lua-filter
+  namespace: oc-testenv
+spec:
+  configPatches:
+  - applyTo: HTTP_FILTER
+    match:
+      context: SIDECAR_INBOUND
+      proxy:
+        proxyVersion: "^1\\.(\\d+)$"
+      listener:
+        filterChain:
+          filter:
+            name: "envoy.filters.network.http_connection_manager"
+    patch:
+      operation: INSERT_BEFORE
+      value:
+        name: envoy.filters.http.lua
+        typed_config:
+          "@type": "type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua"
+          inline_code: |
+            function envoy_on_request(handle)
+              -- Extract the headers from the request
+              local headers = handle:headers()
+              local host_testenv = headers:get("Host-TestEnv")
+
+              -- Make an HTTP call to your decision service
+              local response = handle:httpCall(
+                "decision_service_cluster",  -- Cluster for decision service
+                {
+                  [":method"] = "GET",
+                  [":path"] = "/routing/testEnv",
+                  [":authority"] = "ocproutingservice.route-testenv.svc.cluster.local"
+                },
+                "",
+                5000
+              )
+
+              -- Get the header from the response
+              local target_host = response[2]:get("target-host")
+
+              -- Modify the host header based on decision service response
+              if target_host then
+                headers:replace("Host", target_host)
+              end
+            end
+  - applyTo: CLUSTER
+    match:
+      context: SIDECAR_OUTBOUND
+    patch:
+      operation: ADD
+      value:
+        name: "decision_service_cluster"
+        type: STRICT_DNS
+        connect_timeout: 5s
+        lb_policy: ROUND_ROBIN
+        load_assignment:
+          cluster_name: "decision_service_cluster"
+          endpoints:
+            - lb_endpoints:
+                - endpoint:
+                    address:
+                      socket_address:
+                        address: "ocproutingservice-oc-testenv.apps-crc.testing"
+                        port_value: 80

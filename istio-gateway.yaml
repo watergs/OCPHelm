@@ -1,0 +1,15 @@
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: my-gateway
+  namespace: oc-testenv
+spec:
+  selector:
+    istio: ingressgateway   # Use the ingress gateway from Istio
+  servers:
+  - port:
+      number: 80            # Expose HTTP port
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*"  # Define the hostname to listen to

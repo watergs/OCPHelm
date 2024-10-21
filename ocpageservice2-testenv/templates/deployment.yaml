@@ -6,7 +6,6 @@ metadata:
   labels:
     {{- include "ocpageservice2.labels" . | nindent 4 }}
 spec:
-  restartPolicy: OnFailure
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}

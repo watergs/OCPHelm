@@ -1,0 +1,39 @@
+apiVersion: networking.istio.io/v1
+kind: EnvoyFilter
+metadata:
+  name: custom-header-routing
+  namespace: oc-testenv
+spec:
+  configPatches:
+  - applyTo: VIRTUAL_HOST
+    match:
+      context: SIDECAR_INBOUND
+      routeConfiguration:
+        vhost:
+          name: "ocpaplservice-testenv.oc-testenv.svc.cluster.local:8080"
+    patch:
+      operation: MERGE
+      value:
+        routes:
+        - match:
+            headers:
+            - name: target-host
+              exactMatch: "CDE"
+          route:
+            cluster: "outbound|8080||ocpaplservice-testenv.oc-testenv.svc.cluster.local"
+  - applyTo: VIRTUAL_HOST
+    match:
+      context: SIDECAR_INBOUND
+      routeConfiguration:
+        vhost:
+          name: "ocpaplservice-uc1.oc-uc1.svc.cluster.local:8080"
+    patch:
+      operation: MERGE
+      value:
+        routes:
+        - match:
+            headers:
+            - name: target-host
+              exactMatch: "ABC"
+          route:
+            cluster: "outbound|8080||ocpaplservice-uc1.oc-uc1.svc.cluster.local"

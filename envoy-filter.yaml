@@ -1,0 +1,44 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: combined-filter
+  namespace: istio-system
+spec:
+  workloadSelector:
+    labels:
+      istio: ingressgateway
+  configPatches:
+  - applyTo: HTTP_FILTER
+    match:
+      context: GATEWAY
+      listener:
+        filterChain:
+          filter:
+            name: "envoy.filters.network.http_connection_manager"
+    priority: 0
+    patch:
+      operation: INSERT_FIRST # or ADD
+      value:
+        name: envoy.filters.http.ext_authz
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
+          http_service:
+            server_uri:
+              uri: "http://ocproutingservice-oc-testenv.apps-crc.testing/routing/testEnv"
+              cluster: "outbound|8080||ocproutingservice.route-testenv.svc.cluster.local"
+              timeout: 5s
+            path_prefix: "/routing/testEnv"
+            authorization_request:
+              allowed_headers:
+                patterns:
+                  - exact: ":method"
+                  - exact: ":path"
+                  - exact: ":authority"
+                  - exact: "host-testenv"
+            authorization_response:
+              allowed_upstream_headers:
+                patterns:
+                  - exact: "target-host"
+          with_request_body:
+            max_request_bytes: 819200  # Adjust this value as needed
+            allow_partial_message: true

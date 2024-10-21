@@ -1,0 +1,27 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: header-based-route
+  namespace: oc-testenv
+  # annotations:
+    # haproxy.router.openshift.io/haproxy-config: |
+      # acl hdr_service2 hdr(X-Target-Service) -i aocpaplservice-testenv
+      # use_backend %[req.hdr(X-Target-Service),lower,map_beg(/var/lib/haproxy/host2backend.map,bk_aocpaplservice-testenv)] if hdr_service2
+  # annotations:
+    # haproxy.router.openshift.io/cbr-header: space
+    # haproxy.router.openshift.io/rewrite-target: /apl
+    # router.openshift.io/cookie-name: are
+    # haproxy.router.openshift.io/haproxy-config: |
+    #   acl is_tenant_a cook(tenant-id) tenant_a
+    #   acl is_tenant_b cook(tenant-id) tenant_b
+      
+    #   use_backend be_ocpaplservice-testenv if is_tenant_a
+    #   use_backend be_aocpaplservice-testenv if is_tenant_b
+spec:
+  host: {{ .Values.route.host }}
+  # path: {{ .Values.route.path }}
+  to:
+    kind: Service
+    name: aocpaplservice-testenv
+  port:
+    targetPort: {{ .Values.route.port }}

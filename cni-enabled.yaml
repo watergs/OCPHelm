@@ -1,0 +1,3 @@
+cni:
+  enabled: true
+  # Add additional CNI settings if needed

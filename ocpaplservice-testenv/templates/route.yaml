@@ -1,19 +1,29 @@
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
-  name: {{ include "ocpaplservice.fullname" . }}.apps-crc.testing
-  labels:
-    app.kubernetes.io/instance: ocpaplservice
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/name: ocpaplservice
-    app.kubernetes.io/version: 1.16.0
+  name: header-based-route1
+  namespace: oc-testenv
+  # annotations:
+    # haproxy.router.openshift.io/haproxy-config: |
+      # acl hdr_service1 hdr(X-Target-Service) -i -m str ocpaplservice-testenv
+      # use_backend ocpaplservice-testenv if hdr_service1
+      # acl hdr_service2 hdr(X-Target-Service) -i -m str aocpaplservice-testenv
+      # use_backend aocpaplservice-testenv if hdr_service2
+  # annotations:
+  #   haproxy.router.openshift.io/cbr-header: world
+    # haproxy.router.openshift.io/rewrite-target: /apl
+    # router.openshift.io/cookie-name: test
+    # haproxy.router.openshift.io/haproxy-config: |
+      # acl is_tenant_a cook(tenant-id) tenant_a
+      # acl is_tenant_b cook(tenant-id) tenant_b
+      # 
+      # use_backend be_ocpaplservice-testenv if is_tenant_a
+      # use_backend be_aocpaplservice-testenv if is_tenant_b
 spec:
   host: {{ .Values.route.host }}
-  path: 
+  # path: {{ .Values.route.path }}
   to:
     kind: Service
-    name: {{ include "ocpaplservice.fullname" . }}
-    weight: 100
+    name: ocpaplservice-testenv
   port:
     targetPort: {{ .Values.route.port }}
-  wildcardPolicy: None

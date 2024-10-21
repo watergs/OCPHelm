@@ -1,0 +1,33 @@
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: routing-virtualservice
+  namespace: oc-testenv
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - my-gateway
+  http:
+  - match:
+    - uri:
+        prefix: "/apl"
+      headers:
+        target-host:
+          exact: "ABC"
+    route:
+    - destination:
+        host: ocpaplservice-uc1.oc-uc1.svc.cluster.local
+        port:
+          number: 8080
+  - match:
+    - uri:
+        prefix: "/apl"
+      headers:
+        target-host:
+          exact: "CDE"
+    route:
+    - destination:
+        host: ocpaplservice-testenv.oc-testenv.svc.cluster.local
+        port:
+          number: 8080

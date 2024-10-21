@@ -1,0 +1,13 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: my-privileged-sa-binding
+  namespace: oc-testenv
+subjects:
+- kind: ServiceAccount
+  name: my-privileged-sa
+  namespace: oc-testenv
+roleRef:
+  kind: Role
+  name: my-privileged-role
+  apiGroup: rbac.authorization.k8s.io

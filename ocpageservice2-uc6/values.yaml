@@ -9,7 +9,7 @@ deployment:
 
 image:
   repository: karan17thakkar9/ocpageservice2
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
   tag: lt
 

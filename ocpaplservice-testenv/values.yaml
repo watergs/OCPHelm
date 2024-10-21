@@ -9,7 +9,7 @@ deployment:
     
 image:
   repository: karan17thakkar9/ocpaplservice
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
   tag: lt
 
@@ -47,7 +47,7 @@ service:
   port: 8080
 
 ingress:
-  enabled: true
+  enabled: false
   className: ""
   annotations: {}
     # kubernetes.io/ingress.class: nginx
@@ -64,6 +64,7 @@ ingress:
 
 route:
   host: ocpaplservice-oc-testenv.apps-crc.testing
+  path: /apl
   port: http
 
 resources: {}
@@ -100,6 +101,9 @@ autoscaling:
 
 # Additional volumes on the output Deployment definition.
 volumes: []
+  # - name: haproxy-config
+  #   configMap:
+  #     name: haproxy-config
 # - name: foo
 #   secret:
 #     secretName: mysecret
@@ -107,9 +111,9 @@ volumes: []
 
 # Additional volumeMounts on the output Deployment definition.
 volumeMounts: []
-# - name: foo
-#   mountPath: "/etc/foo"
-#   readOnly: true
+  # - name: haproxy-config
+  #   mountPath: /etc/haproxy/haproxy.config
+  #   subPath: haproxy.config
 
 nodeSelector: {}
 

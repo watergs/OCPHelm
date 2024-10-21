@@ -1,0 +1,267 @@
+# apiVersion: networking.istio.io/v1alpha3
+# kind: EnvoyFilter
+# metadata:
+#   name: combined-filter
+#   namespace: istio-system
+# spec:
+#   workloadSelector:
+#     labels:
+#       istio: ingressgateway
+#   configPatches:
+#   # 1. Insert the ExtAuthz filter first to get the target-host header
+#   - applyTo: HTTP_FILTER
+#     match:
+#       context: GATEWAY
+#       listener:
+#         filterChain:
+#           filter:
+#             name: "envoy.filters.network.http_connection_manager"
+#     priority: 0
+#     patch:
+#       operation: INSERT_FIRST
+#       value:
+#         name: envoy.filters.http.ext_authz
+#         typed_config:
+#           "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
+#           http_service:
+#             server_uri:
+#               uri: "http://ocproutingservice-oc-testenv.apps-crc.testing/routing/testEnv"
+#               cluster: "outbound|8080||ocproutingservice.route-testenv.svc.cluster.local"
+#               timeout: 5s
+#             path_prefix: "/routing/testEnv"
+#             authorization_request:
+#               allowed_headers:
+#                 patterns:
+#                   - exact: ":method"
+#                   - exact: ":path"
+#                   - exact: ":authority"
+#                   - exact: "host-testenv"
+#             authorization_response:
+#               allowed_upstream_headers:
+#                 patterns:
+#                   - exact: "target-host" # Allow this header to be passed upstream
+#           with_request_body:
+#             max_request_bytes: 819200
+#             allow_partial_message: true
+
+#   # 2. Use a dynamic header for routing
+#   - applyTo: HTTP_FILTER
+#     match:
+#       context: GATEWAY
+#       listener:
+#         filterChain:
+#           filter:
+#             name: "envoy.filters.network.http_connection_manager"
+#     patch:
+#       operation: INSERT_AFTER
+#       value:
+#         name: envoy.filters.http.router
+#         typed_config:
+#           "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+#   - applyTo: VIRTUAL_HOST
+#     match:
+#       context: GATEWAY
+#       routeConfiguration:
+#         vhost:
+#           name: "istio-ingressgateway.istio-system.svc.cluster.local:80"
+#     patch:
+#       operation: MERGE
+#       value:
+#         routes:
+#         - match:
+#             headers:
+#             - name: target-host
+#               safe_regex_match: 
+#                 google_re2: {}
+#                 regex: ".*"  # Match any value returned from ExtAuthz
+#           route:
+#             cluster_header: "target-host"  # Route based on the value of the `target-host` header returned from ExtAuthz
+
+#   # Routing based on target-host header AFTER ExtAuthz runs
+#   # - applyTo: VIRTUAL_HOST
+#   #   match:
+#   #     context: GATEWAY
+#   #     routeConfiguration:
+#   #       vhost:
+#   #         name: "ocpaplservice-testenv.oc-testenv.svc.cluster.local:8080"
+#   #   patch:
+#   #     operation: MERGE
+#   #     value:
+#   #       routes:
+#   #       - match:
+#   #           headers:
+#   #           - name: target-host
+#   #             exactMatch: "ABC"
+#   #         route:
+#   #           cluster: "outbound|8080||ocpaplservice-testenv.oc-testenv.svc.cluster.local"
+#   #       - match:
+#   #           headers:
+#   #           - name: target-host
+#   #             exactMatch: "CDE"
+#   #         route:
+#   #           cluster: "outbound|8080||ocpaplservice-uc1.oc-uc1.svc.cluster.local"
+#   #       #Default fallback route to prevent 404s
+#   #       - match:
+#   #           prefix: "/"
+#   #         route:
+#   #           cluster: "outbound|8080||ocpaplservice-default.oc-default.svc.cluster.local"
+
+  #            # Add a Lua filter to capture the target-host and set host_rewrite_literal dynamically
+  # - applyTo: HTTP_FILTER
+  #   match:
+  #     context: GATEWAY
+  #     listener:
+  #       filterChain:
+  #         filter:
+  #           name: "envoy.filters.network.http_connection_manager"
+  #   patch:
+  #     operation: INSERT_AFTER
+  #     value:
+  #       name: envoy.filters.http.lua
+  #       typed_config:
+  #         "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
+  #         inlineCode: |
+  #           function envoy_on_request(handle)
+  #             -- Get the 'target-host' header from the request
+  #             local target_host = "http://ocpaplservice-oc-uc1.apps-crc.testing"
+  #             if target_host ~= nil then
+  #               -- Rewrite the host to the value of 'target-host'
+  #               handle:headers():replace(":authority", target_host)
+  #               handle:headers():replace(":host", target_host)
+  #             end
+  #           end
+
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: dynamic-host-rewrite
+  namespace: istio-system
+spec:
+  workloadSelector:
+    labels:
+      istio: ingressgateway
+  configPatches:
+  # Insert the ext_authz filter to retrieve the target-host header
+  - applyTo: HTTP_FILTER
+    match:
+      context: GATEWAY
+      listener:
+        filterChain:
+          filter:
+            name: "envoy.filters.network.http_connection_manager"
+    priority: 0
+    patch:
+      operation: INSERT_FIRST
+      value:
+        name: envoy.filters.http.ext_authz
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
+          http_service:
+            server_uri:
+              uri: "http://ocproutingservice-oc-testenv.apps-crc.testing/routing/testEnv"
+              cluster: "outbound|8080||ocproutingservice.route-testenv.svc.cluster.local"
+              timeout: 5s
+            path_prefix: "/routing/testEnv"
+            authorization_request:
+              allowed_headers:
+                patterns:
+                  - exact: ":method"
+                  - exact: ":path"
+                  - exact: ":authority"
+                  - exact: "host-testenv"
+            authorization_response:
+              allowed_upstream_headers:
+                patterns:
+                  - exact: "target-host"  # Pass the target-host header upstream
+          with_request_body:
+            max_request_bytes: 819200
+            allow_partial_message: true
+  # 2. Use a dynamic header for routing
+  - applyTo: HTTP_FILTER
+    match:
+      context: GATEWAY
+      listener:
+        filterChain:
+          filter:
+            name: "envoy.filters.network.http_connection_manager"
+    patch:
+      operation: INSERT_AFTER
+      value:
+        name: envoy.filters.http.router
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+  - applyTo: VIRTUAL_HOST
+    match:
+      context: GATEWAY
+      routeConfiguration:
+        vhost:
+          name: "istio-ingressgateway.istio-system.svc.cluster.local:80"
+    patch:
+      operation: MERGE
+      value:
+        routes:
+        - match:
+            headers:
+            - name: target-host
+              safe_regex_match: 
+                google_re2: {}
+                regex: ".*"  # Match any value returned from ExtAuthz
+          route:
+            cluster_header: "target-host"  # Route based on the value of the `target-host` header returned from ExtAuthz
+  # HTTP_ROUTE patch to dynamically change the host based on the 'target-host' header
+  # - applyTo: HTTP_ROUTE
+  #   match:
+  #     context: GATEWAY
+  #     routeConfiguration:
+  #       vhost:
+  #         name: "ocpaplservice-testenv.oc-testenv.svc.cluster.local:8080"  # Virtual host config
+  #   patch:
+  #     operation: MERGE
+  #     value:
+  #       name: "dynamic-route"
+  #       match:
+  #         headers:
+  #         - name: "target-host"
+  #           exactMatch: "CDE"  # Match based on the header value
+  #       route:
+  #         host_rewrite_literal: "new-host-for-cde.com"  # Set the new host
+  # - applyTo: HTTP_ROUTE
+  #   match:
+  #     context: GATEWAY
+  #     routeConfiguration:
+  #       vhost:
+  #         name: "ocpaplservice-uc1.oc-uc1.svc.cluster.local:8080"  # Another Virtual host config
+  #   patch:
+  #     operation: MERGE
+  #     value:
+  #       name: "dynamic-route-uc1"
+  #       match:
+  #         headers:
+  #         - name: "target-host"
+  #           exactMatch: "ABC"  # Match based on the header value
+  #       route:
+  #         host_rewrite_literal: "http://ocpaplservice-oc-uc1.apps-crc.testing"  # Set the new host
+             # Add a Lua filter to capture the target-host and set host_rewrite_literal dynamically
+  - applyTo: HTTP_FILTER
+    match:
+      context: GATEWAY
+      listener:
+        filterChain:
+          filter:
+            name: "envoy.filters.network.http_connection_manager"
+    patch:
+      operation: INSERT_AFTER
+      value:
+        name: envoy.filters.http.lua
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
+          inlineCode: |
+            function envoy_on_request(handle)
+              -- Get the 'target-host' header from the request
+              local target_host = "http://ocpaplservice-oc-uc1.apps-crc.testing"
+              if target_host ~= nil then
+                -- Rewrite the host to the value of 'target-host'
+                handle:headers():replace(":authority", target_host)
+                handle:headers():replace(":host", target_host)
+              end
+            end

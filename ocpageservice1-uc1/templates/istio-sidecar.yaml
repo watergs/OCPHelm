@@ -1,0 +1,21 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: {{ include "ocpaplservice.fullname" . }}-istio
+spec:
+  hosts:
+  - {{ (index .Values.ingress.hosts 0).host }}
+  http:
+  - route:
+    - destination:
+        host: {{ include "ocpaplservice.fullname" . }}
+        port:
+          number: {{ .Values.service.port }}
+    retries:
+      attempts: 1
+      perTryTimeout: 2s
+      retryOn: "404"
+    - destination:
+        host: ocpaplservice-oc-testenv.apps-crc.testing
+        port:
+          number: {{ .Values.service.port }}

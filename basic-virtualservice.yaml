@@ -1,0 +1,21 @@
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: basic-virtualservice
+  namespace: oc-testenv
+spec:
+  hosts:
+  - ocpaplservice.oc-testenv.svc.cluster.local
+  - ocpaplservice-oc-testenv.apps-crc.testing
+  http:
+  - route:
+    - destination:
+        host: ocpaplservice-oc-uc1.apps-crc.testing
+        port:
+          number: 80
+      weight: 100  # Weight for the first destination (50%)
+    - destination:
+        host: ocpaplservice-testenv.oc-testenv.svc.cluster.local
+        port:
+          number: 8080
+      weight: 0  # Weight for the second destination (50%)
